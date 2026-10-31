@@ -1,0 +1,31 @@
+services:
+  web:
+    image: cosmic-journey:latest
+    build:
+      labels:
+        com.cosmic-journey.release: "true"
+      args:
+        SITE_URL: "https://${DOMAIN:?Set DOMAIN}"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    ports: !reset []
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.http.routers.cosmic-journey.rule=Host(`${DOMAIN:?Set DOMAIN}`)"
+      - "traefik.http.routers.cosmic-journey.entrypoints=websecure"
+      - "traefik.http.routers.cosmic-journey.tls=true"
+      - "traefik.http.routers.cosmic-journey.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.cosmic-journey.middlewares=public-security@file,rate-limit@file"
+      - "traefik.http.routers.cosmic-journey.service=cosmic-journey"
+      - "traefik.http.services.cosmic-journey.loadbalancer.server.port=8080"
+
+networks:
+  traefik_proxy:
+    external: true
