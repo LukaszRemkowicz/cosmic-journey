@@ -61,7 +61,7 @@ jobs:
           }
           trap cleanup EXIT
           docker run --detach --name "$COSMIC_CONTAINER_NAME" --publish 127.0.0.1:8080:8080 cosmic-journey:ci
-          curl --fail --silent --show-error --retry 30 --retry-connrefused --retry-delay 1 --retry-max-time 45 --max-time 5 http://127.0.0.1:8080/ >/dev/null
+          curl --fail --silent --show-error --retry 30 --retry-connrefused --retry-all-errors --retry-delay 1 --retry-max-time 45 --max-time 5 http://127.0.0.1:8080/ >/dev/null
           npm run test:http
 
   release:
