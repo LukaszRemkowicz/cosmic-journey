@@ -1,0 +1,17 @@
+.git
+.gitignore
+.DS_Store
+node_modules
+dist
+coverage
+.vite
+docs
+tests
+test-results
+tmp
+temp
+.env
+.env.*
+*.log
+*.tmp
+output
