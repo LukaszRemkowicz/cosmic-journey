@@ -937,6 +937,7 @@ export default function Studio({
                     max={2}
                     step={0.01}
                     display={percent(motion.initialZoom)}
+                    help={m.initialZoomHelp}
                     onChange={(n) => setParam("initialZoom", n)}
                   />
                   <div className="control-divider" />
@@ -1014,6 +1015,7 @@ export default function Studio({
                     min={0}
                     max={90}
                     display={`${motion.rotation}°`}
+                    help={m.rotationHelp}
                     onChange={(n) => setParam("rotation", n)}
                   />
                   <div className="direction-control">
@@ -1119,6 +1121,7 @@ export default function Studio({
                     min={1}
                     max={60}
                     display={`${output.duration} s`}
+                    help={m.durationHelp}
                     onChange={(n) => setOut("duration", n)}
                   />
                   <label className="select-control">
