@@ -1043,6 +1043,26 @@ export default function Studio({
                     help={m.speedHelp}
                     onChange={(n) => setParam("speed", n)}
                   />
+                  <label className="motion-toggle">
+                    <input
+                      type="checkbox"
+                      checked={motion.smoothMotion}
+                      onChange={(e) => setParam("smoothMotion", e.target.checked)}
+                    />
+                    {m.smoothMotion}
+                  </label>
+                  <label className="motion-toggle">
+                    <input
+                      type="checkbox"
+                      checked={motion.replenishStars}
+                      aria-describedby={`${idPrefix}-replenish-stars-help`}
+                      onChange={(e) => setParam("replenishStars", e.target.checked)}
+                    />
+                    {m.replenishStars}
+                  </label>
+                  <small id={`${idPrefix}-replenish-stars-help`} className="control-help motion-toggle-help">
+                    {m.replenishStarsHelp}
+                  </small>
                   <div className="focus-controls">
                     <span>
                       <Icon name="target" size={15} />

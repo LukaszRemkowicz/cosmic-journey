@@ -871,6 +871,19 @@ fieldset:disabled {
   background: #2b3038;
   margin: 0 0 23px;
 }
+.motion-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-size: 11px;
+}
+.motion-toggle input {
+  accent-color: var(--accent);
+}
+.motion-toggle-help {
+  margin: -14px 0 20px;
+}
 .direction-control {
   display: flex;
   gap: 7px;

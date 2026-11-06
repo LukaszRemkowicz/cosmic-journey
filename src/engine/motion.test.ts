@@ -49,6 +49,19 @@ describe('deterministic motion', () => {
     expect(projectPointWithMotion(0.7, 0.4, layers[0], 0.2, 0.7, 0.75)).toEqual({ x: 0.7, y: 0.4 });
   });
 
+  it('eases both the background and the star planes without changing their endpoints', () => {
+    const settings = { ...motion, smoothMotion: true };
+    for (const endpoint of [0, 1]) {
+      expect(getLayerMotions(endpoint, settings)).toEqual(getLayerMotions(endpoint, motion));
+    }
+
+    const early = getLayerMotions(0.25, settings);
+    const late = getLayerMotions(0.75, settings);
+    expect(early[0].angle).toBeLessThan(getLayerMotions(0.25, motion)[0].angle);
+    expect(early.at(-1)!.scale).toBeLessThan(getLayerMotions(0.25, motion).at(-1)!.scale);
+    expect(late[0].angle).toBeGreaterThan(getLayerMotions(0.75, motion)[0].angle);
+  });
+
   it('projects precomputed rotation in portrait image space', () => {
     expect(
       projectPointWithMotion(

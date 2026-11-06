@@ -9,6 +9,8 @@ export type MotionSettings = {
   layerCount: number;
   starSpeed: number;
   speed: number;
+  smoothMotion: boolean;
+  replenishStars: boolean;
   focusX: number;
   focusY: number;
 };
@@ -22,6 +24,8 @@ export const DEFAULT_MOTION: MotionSettings = {
   layerCount: 12,
   starSpeed: 1,
   speed: 1,
+  smoothMotion: false,
+  replenishStars: false,
   focusX: 0.5,
   focusY: 0.5,
 };

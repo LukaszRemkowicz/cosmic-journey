@@ -1,7 +1,13 @@
 import * as THREE from 'three';
-import { getLayerMotions, assignStarLayers } from './layers';
+import { getLayerMotions, assignStarLayers, getFlightProgress } from './layers';
 import { projectPointWithMotion } from './motion';
-import type { MotionSettings, SceneImages } from './types';
+import {
+  createReplenishmentStars,
+  getReplenishmentPose,
+  getReplenishmentStrength,
+  getStarVisibility,
+} from './replenishment';
+import type { MotionSettings, SceneImages, Star } from './types';
 
 const starVertexShader = `
   attribute vec4 uvRect;
@@ -79,6 +85,7 @@ export class StarfieldRenderer {
   private readonly starMaterial?: THREE.ShaderMaterial;
   private readonly starMesh?: THREE.InstancedMesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private readonly starOpacityAttribute?: THREE.InstancedBufferAttribute;
+  private readonly replenishmentStars: ReturnType<typeof createReplenishmentStars>;
   private readonly images: SceneImages;
   private starLayerIndices?: Uint8Array;
   private assignedLayerCount = 0;
@@ -122,28 +129,32 @@ export class StarfieldRenderer {
     this.background = new THREE.Mesh(this.backgroundGeometry, this.backgroundMaterial);
     this.scene.add(this.background);
 
-    if (images.stars.stars.length > 0) {
+    const stars = images.stars.stars;
+    this.replenishmentStars = createReplenishmentStars(stars.length);
+    if (stars.length > 0) {
       this.starGeometry = new THREE.PlaneGeometry(1, 1);
-      const uvRects = new Float32Array(images.stars.stars.length * 4);
-      for (let index = 0; index < images.stars.stars.length; index++) {
-        const star = images.stars.stars[index];
-        const offset = index * 4;
-        uvRects[offset] = star.x - star.width / 2;
-        uvRects[offset + 1] = star.y - star.height / 2;
-        uvRects[offset + 2] = star.width;
-        uvRects[offset + 3] = star.height;
-      }
-      this.starGeometry.setAttribute('uvRect', new THREE.InstancedBufferAttribute(uvRects, 4));
-      const ownerRGB = new Uint8Array(images.stars.stars.length * 3);
-      for (let index = 0; index < images.stars.stars.length; index++) {
-        const id = index + 1;
+      const capacity = stars.length + this.replenishmentStars.length;
+      const uvRects = new Float32Array(capacity * 4);
+      const ownerRGB = new Uint8Array(capacity * 3);
+      for (let index = 0; index < capacity; index++) {
+        const sourceIndex = index < stars.length
+          ? index
+          : this.replenishmentStars[index - stars.length].sourceIndex;
+        const star = stars[sourceIndex];
+        const uvOffset = index * 4;
+        uvRects[uvOffset] = star.x - star.width / 2;
+        uvRects[uvOffset + 1] = star.y - star.height / 2;
+        uvRects[uvOffset + 2] = star.width;
+        uvRects[uvOffset + 3] = star.height;
+        const id = sourceIndex + 1;
         const offset = index * 3;
         ownerRGB[offset] = id & 0xff;
         ownerRGB[offset + 1] = (id >>> 8) & 0xff;
         ownerRGB[offset + 2] = (id >>> 16) & 0xff;
       }
+      this.starGeometry.setAttribute('uvRect', new THREE.InstancedBufferAttribute(uvRects, 4));
       this.starGeometry.setAttribute('ownerRGB', new THREE.InstancedBufferAttribute(ownerRGB, 3, true));
-      const opacity = new Float32Array(images.stars.stars.length).fill(1);
+      const opacity = new Float32Array(capacity).fill(1);
       this.starOpacityAttribute = new THREE.InstancedBufferAttribute(opacity, 1);
       this.starOpacityAttribute.setUsage(THREE.DynamicDrawUsage);
       this.starGeometry.setAttribute('instanceOpacity', this.starOpacityAttribute);
@@ -162,7 +173,8 @@ export class StarfieldRenderer {
         toneMapped: false,
         blending: THREE.AdditiveBlending,
       });
-      this.starMesh = new THREE.InstancedMesh(this.starGeometry, this.starMaterial, images.stars.stars.length);
+      this.starMesh = new THREE.InstancedMesh(this.starGeometry, this.starMaterial, capacity);
+      this.starMesh.count = stars.length;
       this.starMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       this.starMesh.frustumCulled = false;
       this.scene.add(this.starMesh);
@@ -214,10 +226,13 @@ export class StarfieldRenderer {
     this.background.scale.set(imageWidth * backgroundMotion.scale, imageHeight * backgroundMotion.scale, 1);
     this.background.rotation.z = backgroundMotion.angle;
 
-    if (this.starMesh) {
+    const mesh = this.starMesh;
+    const opacity = this.starOpacityAttribute;
+    if (mesh && opacity) {
+      const stars = this.images.stars.stars;
       if (this.assignedLayerCount !== motion.layerCount) {
         this.starLayerIndices = assignStarLayers(
-          this.images.stars.stars,
+          stars,
           motion.layerCount,
         ).indices;
         this.assignedLayerCount = motion.layerCount;
@@ -227,8 +242,20 @@ export class StarfieldRenderer {
       const rotation = new THREE.Quaternion();
       const matrix = new THREE.Matrix4();
       const axis = new THREE.Vector3(0, 0, 1);
-      for (let index = 0; index < this.images.stars.stars.length; index++) {
-        const star = this.images.stars.stars[index];
+      const placeStar = (
+        index: number, star: Star, x: number, y: number,
+        shapeScale: number, angle: number, alpha: number,
+      ) => {
+        position.set(offsetX + x * imageWidth, offsetY + y * imageHeight, 1);
+        rotation.setFromAxisAngle(axis, angle);
+        scale.set(star.width * imageWidth * shapeScale, star.height * imageHeight * shapeScale, 1);
+        mesh.setMatrixAt(index, matrix.compose(position, rotation, scale));
+        opacity.setX(index, alpha);
+      };
+      let initialVisibility = 0;
+      let currentVisibility = 0;
+      for (let index = 0; index < stars.length; index++) {
+        const star = stars[index];
         const starMotion = layerMotions[this.starLayerIndices![index]];
         const center = projectPointWithMotion(
           star.x,
@@ -241,22 +268,30 @@ export class StarfieldRenderer {
         const shapeScale = starMotion.opacity === 0
           ? 0
           : motion.initialZoom * Math.sqrt(starMotion.scale / motion.initialZoom);
-        position.set(
-          offsetX + center.x * imageWidth,
-          offsetY + center.y * imageHeight,
-          1,
-        );
-        rotation.setFromAxisAngle(axis, starMotion.angle);
-        scale.set(
-          star.width * sourceWidth * fitScale * shapeScale,
-          star.height * sourceHeight * fitScale * shapeScale,
-          1,
-        );
-        this.starMesh.setMatrixAt(index, matrix.compose(position, rotation, scale));
-        this.starOpacityAttribute!.setX(index, starMotion.opacity);
+        placeStar(index, star, center.x, center.y, shapeScale, starMotion.angle, starMotion.opacity);
+        if (motion.replenishStars && progress > 0) {
+          initialVisibility += getStarVisibility(
+            motion.focusX + (star.x - motion.focusX) * motion.initialZoom,
+            motion.focusY + (star.y - motion.focusY) * motion.initialZoom,
+          );
+          currentVisibility += starMotion.opacity * getStarVisibility(center.x, center.y);
+        }
       }
-      this.starMesh.instanceMatrix.needsUpdate = true;
-      this.starOpacityAttribute!.needsUpdate = true;
+      mesh.count = stars.length;
+      const strength = getReplenishmentStrength(initialVisibility, currentVisibility, this.replenishmentStars.length);
+      if (strength > 0) {
+        const travel = getFlightProgress(progress, motion.smoothMotion) * motion.speed *
+          Math.min(1, motion.zoom + motion.starSpeed * motion.depth);
+        for (const seed of this.replenishmentStars) {
+          const pose = getReplenishmentPose(seed, travel, motion.focusX, motion.focusY);
+          const alpha = strength * pose.opacity * getStarVisibility(pose.x, pose.y);
+          placeStar(mesh.count++, stars[seed.sourceIndex], pose.x, pose.y, pose.scale, backgroundMotion.angle, alpha);
+        }
+      }
+      mesh.instanceMatrix.addUpdateRange(0, mesh.count * 16);
+      mesh.instanceMatrix.needsUpdate = true;
+      opacity.addUpdateRange(0, mesh.count);
+      opacity.needsUpdate = true;
     }
 
     this.renderer.render(this.scene, this.camera);

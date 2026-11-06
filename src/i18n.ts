@@ -63,6 +63,9 @@ export const copy = {
     right: "W prawo",
     speed: "Prędkość animacji",
     speedHelp: "Zmienia tempo animacji. Długość filmu pozostaje bez zmian.",
+    smoothMotion: "Płynny start i koniec",
+    replenishStars: "Uzupełniaj pole gwiazd",
+    replenishStarsHelp: "Dodaje słabsze, syntetyczne gwiazdy w miarę jak oryginalne opuszczają kadr.",
     duration: "Długość filmu",
     fps: "Klatki na sekundę",
     resolution: "Rozdzielczość",
@@ -164,6 +167,9 @@ export const copy = {
     right: "Right",
     speed: "Animation speed",
     speedHelp: "Changes motion speed while keeping the video duration.",
+    smoothMotion: "Ease in and out",
+    replenishStars: "Replenish star field",
+    replenishStarsHelp: "Adds fainter synthetic stars as the original stars leave the frame.",
     duration: "Video duration",
     fps: "Frames per second",
     resolution: "Resolution",
@@ -182,7 +188,7 @@ export const copy = {
     exportHint: "Add both of your image layers to export a film.",
     codecHint: "MP4 / H.264 · export time depends on your device",
     depthNote:
-      "Depth is an artistic effect. Star positions and appearance come from your image.",
+      "Depth is an artistic effect. The original stars come from your image.",
     mismatch:
       "Image dimensions differ. Load layers from the same framing and orientation.",
     noStars:
