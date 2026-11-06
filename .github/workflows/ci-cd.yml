@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   quality:
+    name: Validate code and build
     uses: LukaszRemkowicz/ci-cd/.github/workflows/node-quality.yml@324b134fd8c2601c5d155a74ab2935f36976f475
     with:
       node_version: '24'
@@ -23,6 +24,7 @@ jobs:
       type_check_command: SITE_URL=https://ci.example.com npm run build
 
   tests:
+    name: Run unit tests
     uses: LukaszRemkowicz/ci-cd/.github/workflows/node-tests.yml@324b134fd8c2601c5d155a74ab2935f36976f475
     with:
       node_version: '24'
