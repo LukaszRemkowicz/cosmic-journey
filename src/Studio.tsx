@@ -937,6 +937,7 @@ export default function Studio({
                     max={2}
                     step={0.01}
                     display={percent(motion.initialZoom)}
+                    help={m.initialZoomHelp}
                     onChange={(n) => setParam("initialZoom", n)}
                   />
                   <div className="control-divider" />
@@ -1014,6 +1015,7 @@ export default function Studio({
                     min={0}
                     max={90}
                     display={`${motion.rotation}°`}
+                    help={m.rotationHelp}
                     onChange={(n) => setParam("rotation", n)}
                   />
                   <div className="direction-control">
@@ -1043,6 +1045,26 @@ export default function Studio({
                     help={m.speedHelp}
                     onChange={(n) => setParam("speed", n)}
                   />
+                  <label className="motion-toggle">
+                    <input
+                      type="checkbox"
+                      checked={motion.smoothMotion}
+                      onChange={(e) => setParam("smoothMotion", e.target.checked)}
+                    />
+                    {m.smoothMotion}
+                  </label>
+                  <label className="motion-toggle">
+                    <input
+                      type="checkbox"
+                      checked={motion.replenishStars}
+                      aria-describedby={`${idPrefix}-replenish-stars-help`}
+                      onChange={(e) => setParam("replenishStars", e.target.checked)}
+                    />
+                    {m.replenishStars}
+                  </label>
+                  <small id={`${idPrefix}-replenish-stars-help`} className="control-help motion-toggle-help">
+                    {m.replenishStarsHelp}
+                  </small>
                   <div className="focus-controls">
                     <span>
                       <Icon name="target" size={15} />
@@ -1099,6 +1121,7 @@ export default function Studio({
                     min={1}
                     max={60}
                     display={`${output.duration} s`}
+                    help={m.durationHelp}
                     onChange={(n) => setOut("duration", n)}
                   />
                   <label className="select-control">
