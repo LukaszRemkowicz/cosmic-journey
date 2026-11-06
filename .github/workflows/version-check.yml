@@ -1,0 +1,16 @@
+name: Version check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  version-bump:
+    name: Verify release version
+    uses: LukaszRemkowicz/ci-cd/.github/workflows/version-check.yml@a81e76d15992f019e8a66b9083e0d91b1d50327c
+    with:
+      version_file: package.json

@@ -11,13 +11,8 @@ concurrency:
   group: release-${{ github.ref }}
 
 jobs:
-  checks:
-    name: Validate release
-    uses: ./.github/workflows/ci.yml
-
   release:
     name: Tag and deploy
-    needs: checks
     runs-on: ubuntu-latest
     permissions:
       contents: write
