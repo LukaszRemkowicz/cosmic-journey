@@ -29,12 +29,18 @@ export function assignStarLayers(
   return { indices, counts };
 }
 
+export function getFlightProgress(progress: number, smoothMotion: boolean): number {
+  if (!Number.isFinite(progress)) throw new RangeError('INVALID_MOTION_PROGRESS');
+  const time = Math.max(0, Math.min(1, progress));
+  return smoothMotion ? time * time * (3 - 2 * time) : time;
+}
+
 export function getLayerMotions(
   progress: number,
   settings: MotionSettings,
 ): LayerMotion[] {
-  const background = getMotion(progress, settings, 0);
-  const p = Math.max(0, Math.min(1, progress));
+  const p = getFlightProgress(progress, settings.smoothMotion);
+  const background = getMotion(p, settings);
 
   return Array.from({ length: settings.layerCount }, (_, index) => {
     const distance = index / (settings.layerCount - 1);

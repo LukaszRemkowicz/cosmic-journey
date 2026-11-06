@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: Validate code and build
+    uses: LukaszRemkowicz/ci-cd/.github/workflows/node-quality.yml@324b134fd8c2601c5d155a74ab2935f36976f475
+    with:
+      node_version: '24'
+      lint_command: npm run check:version
+      format_check_command: git show --format= --check --diff-merges=first-parent HEAD
+      type_check_command: SITE_URL=https://ci.example.com npm run build
+
+  tests:
+    name: Run unit tests
+    uses: LukaszRemkowicz/ci-cd/.github/workflows/node-tests.yml@324b134fd8c2601c5d155a74ab2935f36976f475
+    with:
+      node_version: '24'
+      test_command: SITE_URL=https://ci.example.com npm test
+
+  audit:
+    name: Audit npm dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm audit
