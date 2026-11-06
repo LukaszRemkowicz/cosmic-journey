@@ -1,0 +1,33 @@
+name: Merge policy
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited]
+
+permissions: {}
+
+jobs:
+  source-branch:
+    name: Allow only dev into main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR source
+        env:
+          SOURCE_BRANCH: ${{ github.head_ref }}
+          SOURCE_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          TARGET_REPO: ${{ github.repository }}
+        run: |
+          if [[ "$SOURCE_BRANCH" != dev || "$SOURCE_REPO" != "$TARGET_REPO" ]]; then
+            echo "::error::Merge feature branches into dev first. Only dev can merge into main."
+            exit 1
+          fi
+
+  version-bump:
+    name: Verify release version
+    needs: source-branch
+    permissions:
+      contents: read
+    uses: LukaszRemkowicz/ci-cd/.github/workflows/version-check.yml@a81e76d15992f019e8a66b9083e0d91b1d50327c
+    with:
+      version_file: package.json
