@@ -1,4 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  analyticsEnabled,
+  loadAnalytics,
+  readConsent,
+  removeAnalyticsCookies,
+  saveConsent,
+  type Consent,
+} from "./analytics";
 import { copy } from "./i18n";
 import { Icon } from "./Icon";
 import Studio from "./Studio";
@@ -8,6 +16,10 @@ export default function App() {
   const [demoOpen, setDemoOpen] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [consent, setConsent] = useState<Consent>(readConsent);
+  const [cookieBannerOpen, setCookieBannerOpen] = useState(
+    analyticsEnabled && consent === null,
+  );
   const demoTrigger = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -16,6 +28,22 @@ export default function App() {
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
+
+  useEffect(() => {
+    if (consent === "granted") loadAnalytics();
+  }, [consent]);
+
+  function chooseCookies(value: "granted" | "denied") {
+    saveConsent(value);
+    setCookieBannerOpen(false);
+    if (value === "denied" && consent === "granted") {
+      // gtag.js cannot be unloaded, so clear its cookies and start fresh.
+      removeAnalyticsCookies();
+      location.reload();
+      return;
+    }
+    setConsent(value);
+  }
 
   useEffect(() => {
     if (demoOpen) video.current?.focus({ preventScroll: true });
@@ -140,8 +168,31 @@ export default function App() {
           <Icon name="shield" size={13} />
           {m.local}
         </span>
+        {analyticsEnabled && (
+          <button
+            type="button"
+            className="cookie-settings"
+            onClick={() => setCookieBannerOpen(true)}
+          >
+            {m.cookieSettings}
+          </button>
+        )}
         <span>React · WebGL · MP4</span>
       </footer>
+      {cookieBannerOpen && (
+        <section className="cookie-banner" aria-labelledby="cookie-title">
+          <h2 id="cookie-title">{m.cookieTitle}</h2>
+          <p>{m.cookieText}</p>
+          <div className="cookie-actions">
+            <button type="button" onClick={() => chooseCookies("denied")}>
+              {m.cookieReject}
+            </button>
+            <button type="button" onClick={() => chooseCookies("granted")}>
+              {m.cookieAccept}
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

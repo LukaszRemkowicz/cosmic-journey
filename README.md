@@ -9,7 +9,7 @@ See [how it looks](#how-it-looks).
 You need Docker with Docker Compose. Set `SITE_URL` to the HTTPS address where the app will be available, then start it:
 
 ```sh
-export SITE_URL=https://comsicjourney.lukaszremkowicz.com
+export SITE_URL=https://cosmicjourney.lukaszremkowicz.com
 docker compose up -d --build
 ```
 
@@ -33,12 +33,23 @@ TIFF supports unsigned 8-bit or 16-bit samples and 32-bit floating-point samples
 
 MP4 export uses H.264 and requires a secure browser context: HTTPS or `localhost`. H.264 support and available frame rates and resolutions depend on your browser and device.
 
+## Production deployment
+
+The live site runs on Cloudflare Pages at [cosmicjourney.lukaszremkowicz.com](https://cosmicjourney.lukaszremkowicz.com). Every push to `main` runs [the release workflow](.github/workflows/release.yml): it creates the `vX.Y.Z` tag from `package.json`, builds the app, and deploys `dist` with Wrangler. A release is deployed only when the version tag points to the pushed commit, so bump the version before merging (see [release scripts](scripts/README.md)).
+
+The workflow sets the build variables:
+
+- `SITE_URL` — the public HTTPS address, used for canonical and social links, `robots.txt`, and `sitemap.xml`.
+- `GA_ID` — the Google Analytics 4 measurement ID, taken from the `GA_ID` repository variable. Analytics loads only after a visitor accepts cookies, and visitors can withdraw consent with **Cookie settings** in the footer. Without `GA_ID`, the build has no analytics and no cookie banner.
+
+The workflow needs the `CLOUDFLARE_API_TOKEN` secret and the `CLOUDFLARE_ACCOUNT_ID` variable in the GitHub repository settings.
+
 ## Deploy to your own VPS
 
-Production deployment requires Docker Compose v2.24.4 or newer, a running shared Traefik, and the external `traefik_proxy` network. With the app code already prepared on the VPS, run:
+As an alternative to Cloudflare Pages, you can host the Docker image yourself. This requires Docker Compose v2.24.4 or newer, a running shared Traefik, and the external `traefik_proxy` network. With the app code already prepared on the VPS, run:
 
 ```sh
-export DOMAIN=comsicjourney.lukaszremkowicz.com
+export DOMAIN=cosmicjourney.lukaszremkowicz.com
 ./scripts/release/release.sh
 ```
 

@@ -1637,3 +1637,56 @@ input[type="range"]::-moz-range-thumb {
     margin-top: 23px;
   }
 }
+.cookie-settings {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.cookie-banner {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
+  max-width: 520px;
+  margin-left: auto;
+  padding: 16px;
+  border: 1px solid #424852;
+  border-radius: 12px;
+  background: #14171c;
+  color: #edf0f4;
+  box-shadow: 0 24px 80px #0009;
+}
+.cookie-banner h2 {
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.cookie-banner p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.cookie-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+.cookie-actions button {
+  padding: 9px 16px;
+  border: 1px solid #9b6b4e;
+  border-radius: 8px;
+  background: #30251f;
+  color: #f0c39d;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cookie-actions button:hover {
+  background: #403026;
+}
