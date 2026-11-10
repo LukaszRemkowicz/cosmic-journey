@@ -29,6 +29,11 @@ export default defineConfig(({ mode }) => {
     throw new Error('SITE_URL must be an HTTPS origin without a path, credentials, query, or hash.');
   }
 
+  const gaId = loadEnv(mode, '.', 'GA_ID').GA_ID ?? '';
+  if (gaId && !/^G-[A-Z0-9]+$/.test(gaId)) {
+    throw new Error('GA_ID must be a Google Analytics 4 measurement ID like G-XXXXXXXXXX.');
+  }
+
   const siteUrl = `${parsedSiteUrl.origin}/`;
   const siteMetadata: Plugin = {
     name: 'cosmic-site-metadata',
@@ -52,6 +57,7 @@ export default defineConfig(({ mode }) => {
   return {
     define: {
       __APP_VERSION__: JSON.stringify(packageJson.version),
+      __GA_ID__: JSON.stringify(gaId),
     },
     plugins: [react(), siteMetadata],
   };

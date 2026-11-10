@@ -35,6 +35,7 @@ jobs:
         if: steps.version_tag.outputs.deploy == 'true'
         env:
           SITE_URL: https://cosmicjourney.lukaszremkowicz.com
+          GA_ID: ${{ vars.GA_ID }}
         run: |
           npm ci
           npm run build
