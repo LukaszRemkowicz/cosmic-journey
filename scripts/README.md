@@ -14,7 +14,7 @@ CI runs the version check in the quality job. The release job runs only after qu
 From the project directory on the VPS, run:
 
 ```sh
-export DOMAIN=comsicjourney.lukaszremkowicz.com
+export DOMAIN=cosmicjourney.lukaszremkowicz.com
 ./scripts/release/release.sh
 ```
 
