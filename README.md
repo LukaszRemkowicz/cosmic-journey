@@ -44,17 +44,6 @@ The workflow sets the build variables:
 
 The workflow needs the `CLOUDFLARE_API_TOKEN` secret and the `CLOUDFLARE_ACCOUNT_ID` variable in the GitHub repository settings.
 
-## Deploy to your own VPS
-
-As an alternative to Cloudflare Pages, you can host the Docker image yourself. This requires Docker Compose v2.24.4 or newer, a running shared Traefik, and the external `traefik_proxy` network. With the app code already prepared on the VPS, run:
-
-```sh
-export DOMAIN=cosmicjourney.lukaszremkowicz.com
-./scripts/release/release.sh
-```
-
-Set `DOMAIN` to the hostname only, without `https://` or a path. The script builds the image and restarts the app, causing a brief interruption. It waits up to 60 seconds for an HTTP health check and removes unused images for this app. Run one release at a time; older images are not retained. See the [release script details](scripts/README.md).
-
 ## How it looks
 
 Studio with motion and depth layers and two source images:
